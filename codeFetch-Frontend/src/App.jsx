@@ -73,7 +73,7 @@ function App() {
   };
 
   const reqContent = requests.map(({ id, response, loading }) => (
-    <div key={id} className="">
+    <div key={id} className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <RequestForm
         setResponse={(res) => updateRequest(id, { response: res })}
         setLoader={(load) => updateRequest(id, { loading: load })}
@@ -89,7 +89,7 @@ function App() {
         <ResponseViewer response={response} />
       )}
     </div>
-  ))
+  ));
 
   return (
     <div className="min-h-screen p-4 bg-gray-100">
@@ -105,7 +105,7 @@ function App() {
             Agregar Nueva Solicitud
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="">
           {reqContent}
         </div>
         <ToastContainer />
