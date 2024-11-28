@@ -1,9 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import Label from "../label/Label";
 
 // eslint-disable-next-line react/prop-types
-function RequestForm({ setResponse, setLoader, removeRequest, requests = []}) {
+function RequestForm({ setResponse, setLoader}) {
   const [url, setUrl] = useState("");
   const [param, setParam] = useState("");
   const [method, setMethod] = useState("GET");
@@ -31,21 +32,22 @@ function RequestForm({ setResponse, setLoader, removeRequest, requests = []}) {
     e.preventDefault();
 
     if (url === "") {
-      toast.error(`Error: Debe ingresar un endpoint para poder hacer una consulta`);
+      toast.error(
+        `Error: Debe ingresar un endpoint para poder hacer una consulta`
+      );
       return;
     }
 
     try {
       setLoader(true);
-      const parsedHeaders =  JSON.parse(headers || "{}");
+      const parsedHeaders = JSON.parse(headers || "{}");
       selectedHeaders.forEach((headerKey) => {
         const headerOption = headerOptions.find((h) => h.key === headerKey);
         if (headerOption) {
           parsedHeaders[headerKey] = headerOption.value;
         }
       });
-      if (authToken)
-      {
+      if (authToken) {
         parsedHeaders["Authorization"] = `Bearer ${authToken}`;
       }
 
@@ -55,49 +57,71 @@ function RequestForm({ setResponse, setLoader, removeRequest, requests = []}) {
         headers: parsedHeaders,
         data: body ? JSON.parse(body) : undefined,
       };
-      console.log(config);
+
       const res = await axios(config);
-    
-      setResponse(res);
-      toast.success("Petición exitosa");
+
+  
+      if (res.headers.get("Content-Type") === "application/json") {
+        setResponse(res);
+        toast.success("Petición exitosa");
+      }
+
     } catch (err) {
       setResponse(err.response);
       toast.error(`Error: ${err.message}`);
     } finally {
-        setLoader(false);
+      setLoader(false);
     }
   };
 
   return (
-    <form
-      onSubmit={handleRequest}
-      className="bg-white p-4 rounded shadow-md mb-4 h-fit flex flex-col"
-    >
-      <fieldset>
-        <legend>aca va la url</legend>
-        {requests.length > 1 && (
+    <form onSubmit={handleRequest} className="mb-4 h-fit ">
+      <fieldset className="flex flex-col gap-y-3">
+        <legend>{url}</legend>
+        {/* {requests.length > 1 && (
           <button
             onClick={removeRequest}
             className="self-end bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
           >
             X
           </button>
-        )}
-        <div className="mb-2">
-          <label className="block text-sm font-medium mb-1">URL</label>
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className="w-full p-2 border rounded"
-            placeholder="https://api.example.com"
-          />
+        )} */}
+        <div className="grid grid-cols-12">
+          <div className="mb-2">
+            <Label>Método</Label>
+            <select
+              value={method}
+              onChange={(e) => setMethod(e.target.value)}
+              className="w-full p-2 border rounded"
+            >
+              <option>GET</option>
+              <option>POST</option>
+              <option>PUT</option>
+              <option>DELETE</option>
+            </select>
+          </div>
+          <div className="mb-2 col-span-10">
+            <Label>URL</Label>
+            <input
+              type="text"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="w-full p-2 border rounded"
+              placeholder="https://api.example.com"
+            />
+          </div>
+          <div className="mb-2 flex items-end">
+            <button
+              type="submit"
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Enviar
+            </button>
+          </div>
         </div>
 
         <div className="mb-2">
-          <label className="block text-sm font-medium mb-1">
-            Parámetro (sólo si necesitas un recurso en específico)
-          </label>
+          <Label>Parámetro (sólo si necesitas un recurso en específico)</Label>
           <input
             type="text"
             value={param}
@@ -108,23 +132,7 @@ function RequestForm({ setResponse, setLoader, removeRequest, requests = []}) {
         </div>
 
         <div className="mb-2">
-          <label className="block text-sm font-medium mb-1">Método</label>
-          <select
-            value={method}
-            onChange={(e) => setMethod(e.target.value)}
-            className="w-full p-2 border rounded"
-          >
-            <option>GET</option>
-            <option>POST</option>
-            <option>PUT</option>
-            <option>DELETE</option>
-          </select>
-        </div>
-
-        <div className="mb-2">
-          <label className="block text-sm font-medium mb-1">
-            Token de Autenticación (opcional)
-          </label>
+          <Label>Token de Autenticación (opcional)</Label>
           <input
             type="text"
             value={authToken}
@@ -135,9 +143,7 @@ function RequestForm({ setResponse, setLoader, removeRequest, requests = []}) {
         </div>
 
         <div className="mb-2">
-          <label className="block text-sm font-medium mb-1">
-            Cabeceras estándar
-          </label>
+          <Label>Cabeceras estándar</Label>
           <div className="grid grid-cols-2 gap-2">
             {headerOptions.map((header) => (
               <label key={header.key} className="flex items-center">
@@ -154,9 +160,7 @@ function RequestForm({ setResponse, setLoader, removeRequest, requests = []}) {
         </div>
 
         <div className="mb-2">
-          <label className="block text-sm font-medium mb-1">
-            Cabeceras personalizadas (JSON)
-          </label>
+          <Label>Cabeceras personalizadas (JSON)</Label>
           <textarea
             value={headers}
             onChange={(e) => setHeaders(e.target.value)}
@@ -167,9 +171,7 @@ function RequestForm({ setResponse, setLoader, removeRequest, requests = []}) {
 
         {["POST", "PUT"].includes(method) && (
           <div className="mb-2">
-            <label className="block text-sm font-medium mb-1">
-              Cuerpo (JSON)
-            </label>
+            <Label>Cuerpo (JSON)</Label>
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
@@ -178,13 +180,6 @@ function RequestForm({ setResponse, setLoader, removeRequest, requests = []}) {
             ></textarea>
           </div>
         )}
-
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 mt-4 rounded hover:bg-blue-600"
-        >
-          Enviar
-        </button>
       </fieldset>
     </form>
   );
