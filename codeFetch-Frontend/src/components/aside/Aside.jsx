@@ -4,13 +4,14 @@
 
 function Aside({ savedRequests, onRequestSelect, removeRequest }) {
   const days = Object.keys(savedRequests);
+  console.log(savedRequests)
   
   return (
-    <aside className="fixed left-0 top-0 h-dvh bg-gray-100/20 border-r w-1/5 flex flex-col justify-center items-center z-50">
+    <aside className="fixed left-0 top-0 h-dvh bg-gray-100/20 border-r w-1/5 flex flex-col justify-start items-center pt-10 z-50">
       <h2 className="text-lg font-bold mb-4">Solicitudes Guardadas</h2>
       {days.length === 0 && <p>No hay solicitudes guardadas.</p>}
       {days.map((day) => (
-        <div key={day} className="mb-4 flex flex-col items-center w-full">
+        <div key={day} className="mb-4 flex flex-col items-center w-full overflow-y-auto">
           <h3 className="text-base font-semibold">{day}</h3>
           <ul className=" list-none w-full">
             {savedRequests[day].map((req, index) => (
@@ -28,7 +29,7 @@ function Aside({ savedRequests, onRequestSelect, removeRequest }) {
                     </span>{" "}
                     {req.response.config.url}
                   </button>
-                  <button onClick={removeRequest} className="">
+                  <button onClick={() => removeRequest(day, req.id)} className="">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="20"

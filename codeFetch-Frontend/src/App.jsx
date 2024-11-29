@@ -3,7 +3,7 @@ import "./App.css";
 import RequestForm from "./components/requestForm/RequestForm";
 import ResponseViewer from "./components/responseViewer/ResponseViewer";
 import "react-toastify/dist/ReactToastify.css";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import Aside from "./components/aside/Aside";
 
 function App() {
@@ -16,7 +16,7 @@ function App() {
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem("savedRequests")) || {};
     setSavedRequests(saved);
-  }, [])
+  }, [savedRequests])
   
 
   const saveRequest = (requestData) => {
@@ -27,12 +27,6 @@ function App() {
     {
         updatedRequests[today] = [];
     }
-
-    console.log(
-      requestData.id,
-      requestData.response.config.url,
-      requestData.response.config.method
-    );
 
     const finder = updatedRequests[today].find(
       (e) =>
@@ -53,16 +47,19 @@ function App() {
     ]);
   };
 
-  const removeRequest = (id) => {
-    setRequests((prevRequests) =>
-      prevRequests.filter((req) => req.id !== id)
-    );
-    console.log(requests)
-    // if (requests.length > 1) {
-    // } else {
-    //   toast.error("Debe haber al menos 1 solicitud");
-    // }
-  };
+const removeRequest = (day, id) => {
+  const updatedRequests = { ...savedRequests };
+
+  updatedRequests[day] = updatedRequests[day].filter((req) => req.id !== id);
+
+  if (updatedRequests[day].length === 0) {
+    delete updatedRequests[day];
+  }
+
+  setSavedRequests(updatedRequests);
+  localStorage.setItem("savedRequests", JSON.stringify(updatedRequests));
+};
+
 
   const updateRequest = (id, updatedData) => {
     setRequests((prevRequests) =>
@@ -73,10 +70,12 @@ function App() {
   };
 
   const loadSavedRequest = (requestData) => {
-    setRequests((prevRequests) => [
-      ...prevRequests,
-      { id: Date.now(), ...requestData },
-    ]);
+    // setRequests((prevRequests) => [
+    //   ...prevRequests,
+    //   { id: Date.now(), ...requestData },
+    // ]);
+    setRequests([requestData]);
+    console.log(requestData);
   };
 
   const reqContent = requests.map(({ id, response, loading }) => (
@@ -90,8 +89,6 @@ function App() {
           });
         }}
         setLoader={(load) => updateRequest(id, { loading: load })}
-        // removeRequest={() => removeRequest(id)}
-        // requests={requests}
       />
       {loading ? (
         <div className="flex justify-center items-center gap-4 mt-4">
