@@ -1,4 +1,4 @@
-function Aside({ savedRequests, showRequest }) {
+function Aside({ savedRequests, onSaveAndShow, onDelete }) {
   const datesOfRequests = Object.keys(savedRequests);
 
   return (
@@ -11,8 +11,13 @@ function Aside({ savedRequests, showRequest }) {
           <div key={date}>
             <h3 className="font-semibold">{date}</h3>
             {savedRequests[date]?.map((req, index) => (
-              <p key={index}>
-                <button onClick={() => showRequest(req)}>{req.config.url}</button>
+              <p key={index} className="flex gap-2">
+                <button onClick={() => onSaveAndShow(req)}>
+                  {req.config.url}
+                </button>
+                <button onClick={() => onDelete(req)}>
+                  🗑
+                </button>
               </p>
             ))}
           </div>

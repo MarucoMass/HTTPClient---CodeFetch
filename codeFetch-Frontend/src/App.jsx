@@ -34,12 +34,11 @@ function App() {
       (request) => request.id === req.id
     );
 
-    if (!selectedReq) {
-      return;
-    } else {
-      console.log(selectedReq)
-      setSelectedRequest(selectedReq)
-    }
+    console.log(req)
+
+    if (selectedReq) {
+      setSelectedRequest(selectedReq);
+    } 
   }
 
   const handleSaveRequest = (request) => {
@@ -51,10 +50,76 @@ function App() {
       updateRequests[today] = [];
     }
 
-    updateRequests[today].push({id: selectedRequest.id, ...request});
-    setSavedRequests(updateRequests);
-    localStorage.setItem("savedRequests", JSON.stringify(updateRequests));
+     const finder = updateRequests[today].find(
+       (req) =>
+         req.config.url == request.config.url &&
+         req.config.method == request.config.method
+     );
+
+     if (!finder) {
+       updateRequests[today].push({ id: Date.now(), ...request });
+       setSavedRequests(updateRequests);
+       localStorage.setItem("savedRequests", JSON.stringify(updateRequests));
+     }
   }
+
+
+const saveAndShowSavedReq = (request) => {
+  setRequests((prev) => {
+    const exists = prev.some((req) => req.id === request.id);
+    if (exists) {
+      console.log("La solicitud ya existe, solo se seleccionará.");
+      return prev;
+    }
+
+    console.log("Nueva solicitud agregada:", request);
+    return [...prev, request];
+  });
+
+  setSelectedRequest(request);
+};
+
+const removeFromRequests = (request) => {
+   const filteredReq = requests.filter((req) => req.id !== request.id);
+
+   if (selectedRequest?.id === request.id) {
+     const lastRequest =
+       filteredReq.length > 0 ? filteredReq[filteredReq.length - 1] : null;
+     setSelectedRequest(lastRequest);
+   }
+    setRequests(filteredReq);
+}
+
+const deleteRequest = (request) => {
+
+  removeFromRequests(request);
+
+  const updatedRequests = { ...savedRequests };
+  let dayOfReq = "";
+
+  for (const day in updatedRequests) {
+    if (updatedRequests[day].some((req) => req.id === request.id)) {
+      dayOfReq = day;
+      break; 
+    }
+  }
+
+  if (dayOfReq) {
+    updatedRequests[dayOfReq] = updatedRequests[dayOfReq].filter(
+      (req) => req.id !== request.id
+    );
+
+    if (updatedRequests[dayOfReq].length < 1) {
+      delete updatedRequests[dayOfReq];
+    }
+
+    setSavedRequests(updatedRequests);
+    localStorage.setItem("savedRequests", JSON.stringify(updatedRequests));
+  }
+
+};
+
+
 
   const requestContent = selectedRequest && (
     <div key={selectedRequest.id} className="p-8">
@@ -72,7 +137,11 @@ function App() {
 
   return (
     <>
-      <Aside savedRequests={savedRequests} showRequest={showRequest}/>
+      <Aside
+        savedRequests={savedRequests}
+        onSaveAndShow={saveAndShowSavedReq}
+        onDelete={deleteRequest}
+      />
       <div className="min-h-screen bg-gray-100/20 pl-96">
         <h1 className="text-2xl font-bold text-center py-4">
           Cliente HTTP - CodeFetch
@@ -87,8 +156,10 @@ function App() {
           {requests.map((req) => (
             <button
               key={req.id}
-              className={`p-3  mx-4 ${
-                req.id === selectedRequest.id ? "bg-red-600" : "bg-blue-500"
+              className={`p-3 mx-4 ${
+                selectedRequest && req.id === selectedRequest.id
+                  ? "bg-red-600"
+                  : "bg-blue-500"
               }`}
               onClick={() => showRequest(req)}
             >
