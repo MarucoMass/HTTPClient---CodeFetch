@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import Label from "../label/Label";
 
 // eslint-disable-next-line react/prop-types
-function RequestForm({ setResponse, setLoader}) {
+function RequestForm({ setLoader, saveRequest}) {
   const [url, setUrl] = useState("");
   const [param, setParam] = useState("");
   const [method, setMethod] = useState("GET");
@@ -62,12 +62,13 @@ function RequestForm({ setResponse, setLoader}) {
 
   
       if (res.headers.get("Content-Type") === "application/json") {
-        setResponse(res);
+        saveRequest(res);
         toast.success("Petición exitosa");
+        console.log(res)
       }
 
     } catch (err) {
-      setResponse(err.response);
+      // setResponse(err.response);
       toast.error(`Error: ${err.message}`);
     } finally {
       setLoader(false);
@@ -78,14 +79,6 @@ function RequestForm({ setResponse, setLoader}) {
     <form onSubmit={handleRequest} className="mb-4 h-fit ">
       <fieldset className="flex flex-col gap-y-3">
         <legend>{url}</legend>
-        {/* {requests.length > 1 && (
-          <button
-            onClick={removeRequest}
-            className="self-end bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-          >
-            X
-          </button>
-        )} */}
         <div className="grid grid-cols-12">
           <div className="mb-2">
             <Label>Método</Label>

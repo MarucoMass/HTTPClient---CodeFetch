@@ -7,108 +7,72 @@ import { ToastContainer } from "react-toastify";
 import Aside from "./components/aside/Aside";
 
 function App() {
-  const [requests, setRequests] = useState([
-    { id: Date.now(), response: null, loading: false },
-  ]);
 
-  const [savedRequests, setSavedRequests] = useState({});
+  const [requests, setRequests] = useState([]);
+  const [savedRequests, setSavedRequests] = useState({})
+  const [loader, setLoader] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("savedRequests")) || {};
-    setSavedRequests(saved);
-  }, [savedRequests])
-  
-
-  const saveRequest = (requestData) => {
-    const today = new Date().toISOString().split("T")[0];
-    const updatedRequests = {...savedRequests};
-
-    if(!updatedRequests[today])
-    {
-        updatedRequests[today] = [];
-    }
-
-    const finder = updatedRequests[today].find(
-      (e) =>
-        e.response.config.url == requestData.response.config.url &&
-        e.response.config.method == requestData.response.config.method
-    );
-    if(!finder){
-      updatedRequests[today].push(requestData);
-      localStorage.setItem("savedRequests", JSON.stringify(updatedRequests));
-    }
-
-  }
+    const requests = JSON.parse(localStorage.getItem("savedRequests")) || {};
+    setSavedRequests(requests);
+  }, [])
 
   const addRequest = () => {
-    setRequests((prevRequests) => [
-      ...prevRequests,
-      { id: Date.now(), response: null, loading: false },
+    const newRequest =  {
+        id: Date.now()
+      }
+    setRequests((prev) => [
+      ...prev,
+      newRequest
     ]);
-  };
+    setSelectedRequest(newRequest);
+  }
+  
+  const showRequest = (req) => {
+    const selectedReq = requests.find(
+      (request) => request.id === req.id
+    );
 
-const removeRequest = (day, id) => {
-  const updatedRequests = { ...savedRequests };
-
-  updatedRequests[day] = updatedRequests[day].filter((req) => req.id !== id);
-
-  if (updatedRequests[day].length === 0) {
-    delete updatedRequests[day];
+    if (!selectedReq) {
+      return;
+    } else {
+      console.log(selectedReq)
+      setSelectedRequest(selectedReq)
+    }
   }
 
-  setSavedRequests(updatedRequests);
-  localStorage.setItem("savedRequests", JSON.stringify(updatedRequests));
-};
+  const handleSaveRequest = (request) => {
+    const today = new Date().toISOString().split("T")[0];
 
+    const updateRequests = {...savedRequests};
 
-  const updateRequest = (id, updatedData) => {
-    setRequests((prevRequests) =>
-      prevRequests.map((req) =>
-        req.id === id ? { ...req, ...updatedData } : req
-      )
-    );
-  };
+    if(!updateRequests[today]){
+      updateRequests[today] = [];
+    }
 
-  const loadSavedRequest = (requestData) => {
-    // setRequests((prevRequests) => [
-    //   ...prevRequests,
-    //   { id: Date.now(), ...requestData },
-    // ]);
-    setRequests([requestData]);
-    console.log(requestData);
-  };
+    updateRequests[today].push({id: selectedRequest.id, ...request});
+    setSavedRequests(updateRequests);
+    localStorage.setItem("savedRequests", JSON.stringify(updateRequests));
+  }
 
-  const reqContent = requests.map(({ id, response, loading }) => (
-    <div key={id} className="p-8">
-      <RequestForm
-        setResponse={(res) => {
-          updateRequest(id, { response: res });
-          saveRequest({
-            ...requests.find((req) => req.id === id),
-            response: res,
-          });
-        }}
-        setLoader={(load) => updateRequest(id, { loading: load })}
-      />
-      {loading ? (
+  const requestContent = selectedRequest && (
+    <div key={selectedRequest.id} className="p-8">
+      <RequestForm setLoader={setLoader} saveRequest={handleSaveRequest}/>
+      {loader ? (
         <div className="flex justify-center items-center gap-4 mt-4">
           <p className="text-black dark:text-white">Cargando...</p>
           <div className="w-10 h-10 border-4 border-t-transparent border-gray-500 rounded-full animate-spin"></div>
         </div>
       ) : (
-        <ResponseViewer response={response} />
+        <ResponseViewer response={selectedRequest.response} />
       )}
     </div>
-  ));
+  );
 
   return (
     <>
-      <Aside 
-        savedRequests={savedRequests} 
-        onRequestSelect={loadSavedRequest} 
-        // requests={requests}
-        removeRequest={removeRequest}
-      />
+      <Aside savedRequests={savedRequests} showRequest={showRequest}/>
       <div className="min-h-screen bg-gray-100/20 pl-96">
         <h1 className="text-2xl font-bold text-center py-4">
           Cliente HTTP - CodeFetch
@@ -120,8 +84,19 @@ const removeRequest = (day, id) => {
           >
             Agregar Nueva Solicitud
           </button>
+          {requests.map((req) => (
+            <button
+              key={req.id}
+              className={`p-3  mx-4 ${
+                req.id === selectedRequest.id ? "bg-red-600" : "bg-blue-500"
+              }`}
+              onClick={() => showRequest(req)}
+            >
+              URL
+            </button>
+          ))}
 
-          {reqContent}
+          {requestContent}
 
           <ToastContainer />
         </div>
