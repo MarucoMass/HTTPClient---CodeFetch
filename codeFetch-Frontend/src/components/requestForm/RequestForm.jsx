@@ -77,8 +77,6 @@ function RequestForm({ setLoader, saveRequest}) {
 
   return (
     <form onSubmit={handleRequest} className="mb-4 h-fit ">
-      <fieldset className="flex flex-col gap-y-3">
-        <legend>{url}</legend>
         <div className="grid grid-cols-12">
           <div className="mb-2">
             <Label>Método</Label>
@@ -173,7 +171,6 @@ function RequestForm({ setLoader, saveRequest}) {
             ></textarea>
           </div>
         )}
-      </fieldset>
     </form>
   );
 }
