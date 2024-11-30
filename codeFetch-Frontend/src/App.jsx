@@ -27,6 +27,7 @@ function App() {
       newRequest
     ]);
     setSelectedRequest(newRequest);
+    console.log(newRequest)
   }
   
   const showRequest = (req) => {
@@ -43,25 +44,46 @@ function App() {
 
   const handleSaveRequest = (request) => {
     const today = new Date().toISOString().split("T")[0];
-
-    const updateRequests = {...savedRequests};
-
-    if(!updateRequests[today]){
-      updateRequests[today] = [];
+  
+    const updatedRequests = { ...savedRequests };
+  
+    if (!updatedRequests[today]) {
+      updatedRequests[today] = [];
     }
+  
+    const isDuplicate = updatedRequests[today].some(
+      (req) =>
+        req.config.url === request.config.url &&
+        req.config.method === request.config.method
+    );
+  
+    if (!isDuplicate) {
 
-     const finder = updateRequests[today].find(
-       (req) =>
-         req.config.url == request.config.url &&
-         req.config.method == request.config.method
-     );
+      const newId = Date.now();
+  
+      const updatedRequest = {
+        ...request,
+        id: newId, 
+      };
 
-     if (!finder) {
-       updateRequests[today].push({ id: Date.now(), ...request });
-       setSavedRequests(updateRequests);
-       localStorage.setItem("savedRequests", JSON.stringify(updateRequests));
-     }
-  }
+      console.log(updatedRequest)
+  
+      updatedRequests[today].push(updatedRequest);
+      setSavedRequests(updatedRequests);
+  
+      localStorage.setItem("savedRequests", JSON.stringify(updatedRequests));
+
+      setRequests((prevRequests) =>
+        prevRequests.map((req) =>
+          req.id === selectedRequest.id ? updatedRequest : req
+        )
+      );
+
+      setSelectedRequest(updatedRequest);
+    
+    }
+  };
+  
 
 
 const saveAndShowSavedReq = (request) => {
@@ -77,6 +99,7 @@ const saveAndShowSavedReq = (request) => {
   });
 
   setSelectedRequest(request);
+
 };
 
 const removeFromRequests = (request) => {
