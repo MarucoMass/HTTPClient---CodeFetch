@@ -11,14 +11,14 @@ function Aside({ savedRequests, onSaveAndShow, onDelete }) {
           <div key={date}>
             <h3 className="font-semibold">{date}</h3>
             {savedRequests[date]?.map((req, index) => (
-              <p key={index} className="flex gap-2">
-                <button onClick={() => onSaveAndShow(req)}>
-                  {req.config.url}
-                </button>
-                <button onClick={() => onDelete(req)}>
-                  🗑
-                </button>
-              </p>
+              <div key={index} className=" gap-2 hover:bg-gray-200 transition-colors">
+                <div className=" py-1 flex justify-start ">
+                  <button onClick={() => onSaveAndShow(req)}>
+                    {req.config.url}
+                  </button>
+                  <button className="" onClick={() => onDelete(req)}>🗑</button>
+                </div>
+              </div>
             ))}
           </div>
         ))

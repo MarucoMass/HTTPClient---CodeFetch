@@ -6,12 +6,13 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
 import Aside from "./components/aside/Aside";
 import NavTab from "./components/navTab/NavTab";
+import RequestLayout from "./components/requestLayout/RequestLayout";
 
 function App() {
   const [requests, setRequests] = useState([]);
   const [savedRequests, setSavedRequests] = useState({});
-  const [loader, setLoader] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [response, setResponse] = useState({});
 
   useEffect(() => {
     const requests = JSON.parse(localStorage.getItem("savedRequests")) || {};
@@ -21,6 +22,9 @@ function App() {
   const addRequest = () => {
     const newRequest = {
       id: Date.now(),
+      url: "",
+      method:"",
+      headers:""
     };
     setRequests((prev) => [...prev, newRequest]);
     setSelectedRequest(newRequest);
@@ -28,12 +32,10 @@ function App() {
   };
 
   const showRequest = (req) => {
-    const selectedReq = requests.find((request) => request.id === req.id);
-
-    console.log(req);
-
-    if (selectedReq) {
-      setSelectedRequest(selectedReq);
+    const foundRequest = requests.find((r) => r.id === req.id);
+    if (foundRequest) {
+      setSelectedRequest(foundRequest); 
+      setResponse({})
     }
   };
 
@@ -90,6 +92,7 @@ function App() {
     });
 
     setSelectedRequest(request);
+    setResponse({})
   };
 
   const removeFromRequests = (request) => {
@@ -130,19 +133,19 @@ function App() {
     }
   };
 
-  const requestContent = selectedRequest && (
-    <div key={selectedRequest.id} className="mt-10 mx-8">
-      <RequestForm setLoader={setLoader} saveRequest={handleSaveRequest} />
-      {loader ? (
-        <div className="flex justify-center items-center gap-4 mt-4">
-          <p className="text-black dark:text-white">Cargando...</p>
-          <div className="w-10 h-10 border-4 border-t-transparent border-gray-500 rounded-full animate-spin"></div>
-        </div>
-      ) : (
-        <ResponseViewer response={selectedRequest.response} />
-      )}
-    </div>
-  );
+  // const requestContent = selectedRequest && (
+  //   <div key={selectedRequest.id} className="mt-10 mx-8">
+  //     <RequestForm setLoader={setLoader} saveRequest={handleSaveRequest} />
+  //     {loader ? (
+  //       <div className="flex justify-center items-center gap-4 mt-4">
+  //         <p className="text-black dark:text-white">Cargando...</p>
+  //         <div className="w-10 h-10 border-4 border-t-transparent border-gray-500 rounded-full animate-spin"></div>
+  //       </div>
+  //     ) : (
+  //       <ResponseViewer response={selectedRequest.response} />
+  //     )}
+  //   </div>
+  // );
 
   return (
     <>
@@ -169,7 +172,13 @@ function App() {
             onClose={removeFromRequests}
           />
 
-          {requestContent}
+          {/* {requestContent} */}
+          <RequestLayout
+            selectedRequest={selectedRequest}
+            handleSaveRequest={handleSaveRequest}
+            response={response}
+            setResponse={setResponse}
+          />
 
           <ToastContainer />
         </div>

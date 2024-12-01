@@ -4,15 +4,16 @@ import { toast } from "react-toastify";
 import Label from "../label/Label";
 
 // eslint-disable-next-line react/prop-types
-function RequestForm({ setLoader, saveRequest}) {
-  const [url, setUrl] = useState("");
+function RequestForm({ setLoader, onSave, setResponse, data}) {
+  const [url, setUrl] = useState(data.config?.url ?? "");
   const [param, setParam] = useState("");
-  const [method, setMethod] = useState("GET");
+  const [method, setMethod] = useState(data.config?.method ?? "GET");
   const [headers, setHeaders] = useState("");
   const [authToken, setAuthToken] = useState("");
   const [body, setBody] = useState("");
   const [selectedHeaders, setSelectedHeaders] = useState([]);
 
+  console.log(data)
   const headerOptions = [
     { key: "Content-Type", value: "application/json" },
     { key: "Accept", value: "application/json" },
@@ -30,7 +31,6 @@ function RequestForm({ setLoader, saveRequest}) {
 
   const handleRequest = async (e) => {
     e.preventDefault();
-
     if (url === "") {
       toast.error(
         `Error: Debe ingresar un endpoint para poder hacer una consulta`
@@ -62,13 +62,12 @@ function RequestForm({ setLoader, saveRequest}) {
 
   
       if (res.headers.get("Content-Type") === "application/json") {
-        saveRequest(res);
+        onSave(res);
+        setResponse(res);
         toast.success("Petición exitosa");
-        console.log(res)
       }
 
     } catch (err) {
-      // setResponse(err.response);
       toast.error(`Error: ${err.message}`);
     } finally {
       setLoader(false);
@@ -83,7 +82,7 @@ function RequestForm({ setLoader, saveRequest}) {
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded uppercase"
             >
               <option>GET</option>
               <option>POST</option>
