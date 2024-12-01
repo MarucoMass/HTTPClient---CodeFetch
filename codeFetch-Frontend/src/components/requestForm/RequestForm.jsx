@@ -1,19 +1,18 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Label from "../label/Label";
 
-// eslint-disable-next-line react/prop-types
 function RequestForm({ setLoader, onSave, setResponse, data}) {
   const [url, setUrl] = useState(data.config?.url ?? "");
   const [param, setParam] = useState("");
   const [method, setMethod] = useState(data.config?.method ?? "GET");
-  const [headers, setHeaders] = useState("");
+  const [headers, setHeaders] = useState(JSON.stringify(data.headers) ? JSON.stringify(data.headers) : "");
   const [authToken, setAuthToken] = useState("");
   const [body, setBody] = useState("");
   const [selectedHeaders, setSelectedHeaders] = useState([]);
 
-  console.log(data)
   const headerOptions = [
     { key: "Content-Type", value: "application/json" },
     { key: "Accept", value: "application/json" },
@@ -77,7 +76,7 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
   return (
     <form onSubmit={handleRequest} className="mb-4 h-fit ">
         <div className="grid grid-cols-12">
-          <div className="mb-2">
+          <div className="mb-2 col-span-1">
             <Label>Método</Label>
             <select
               value={method}
@@ -100,10 +99,10 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
               placeholder="https://api.example.com"
             />
           </div>
-          <div className="mb-2 flex items-end">
+          <div className="mb-2 flex items-end col-span-1">
             <button
               type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 w-full"
             >
               Enviar
             </button>

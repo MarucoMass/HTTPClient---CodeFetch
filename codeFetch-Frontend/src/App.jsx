@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
 import "./App.css";
-import RequestForm from "./components/requestForm/RequestForm";
-import ResponseViewer from "./components/responseViewer/ResponseViewer";
 import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer } from "react-toastify";
 import Aside from "./components/aside/Aside";
 import NavTab from "./components/navTab/NavTab";
 import RequestLayout from "./components/requestLayout/RequestLayout";
@@ -24,11 +22,10 @@ function App() {
       id: Date.now(),
       url: "",
       method:"",
-      headers:""
+      headers:"{}"
     };
     setRequests((prev) => [...prev, newRequest]);
     setSelectedRequest(newRequest);
-    console.log(newRequest);
   };
 
   const showRequest = (req) => {
@@ -62,8 +59,6 @@ function App() {
         id: newId,
       };
 
-      console.log(updatedRequest);
-
       updatedRequests[today].push(updatedRequest);
       setSavedRequests(updatedRequests);
 
@@ -83,11 +78,10 @@ function App() {
     setRequests((prev) => {
       const exists = prev.some((req) => req.id === request.id);
       if (exists) {
-        console.log("La solicitud ya existe, solo se seleccionará.");
+        // toast.warn("La solicitud ya se encuentra abierta.");
         return prev;
       }
 
-      console.log("Nueva solicitud agregada:", request);
       return [...prev, request];
     });
 
@@ -133,19 +127,6 @@ function App() {
     }
   };
 
-  // const requestContent = selectedRequest && (
-  //   <div key={selectedRequest.id} className="mt-10 mx-8">
-  //     <RequestForm setLoader={setLoader} saveRequest={handleSaveRequest} />
-  //     {loader ? (
-  //       <div className="flex justify-center items-center gap-4 mt-4">
-  //         <p className="text-black dark:text-white">Cargando...</p>
-  //         <div className="w-10 h-10 border-4 border-t-transparent border-gray-500 rounded-full animate-spin"></div>
-  //       </div>
-  //     ) : (
-  //       <ResponseViewer response={selectedRequest.response} />
-  //     )}
-  //   </div>
-  // );
 
   return (
     <>
@@ -158,12 +139,12 @@ function App() {
         <h1 className="text-2xl font-bold text-center py-4">
           Cliente HTTP - CodeFetch
         </h1>
-        <div className="text-center mb-4">
+        <div className="text-center">
           <button
             onClick={addRequest}
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
-            Agregar Nueva Solicitud
+            Agregar nueva solicitud
           </button>
           <NavTab
             requests={requests}
@@ -172,7 +153,6 @@ function App() {
             onClose={removeFromRequests}
           />
 
-          {/* {requestContent} */}
           <RequestLayout
             selectedRequest={selectedRequest}
             handleSaveRequest={handleSaveRequest}

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import RequestForm from "../requestForm/RequestForm";
 import ResponseViewer from "../responseViewer/ResponseViewer";
@@ -7,7 +8,7 @@ const [loader, setLoader] = useState(false);
 // const [response, setResponse] = useState({})
 if (!selectedRequest) return null;
   return (
-      <div key={selectedRequest.id} className="mt-10 mx-8">
+      <div key={selectedRequest.id} className="mt-4 mx-8">
         <RequestForm
           setLoader={setLoader}
           onSave={handleSaveRequest}

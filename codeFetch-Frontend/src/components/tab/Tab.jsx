@@ -6,7 +6,7 @@ const Tab = ({ request, isActive, onShow, onClose }) => {
         }`}
       >
         <button onClick={() => onShow(request)} className="truncate w-full text-left">
-          {request.config?.url || "Nueva Solicitud"}
+          {request.config?.url || "Nueva solicitud"}
         </button>
         <button
           onClick={() => onClose(request)}

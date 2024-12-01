@@ -10,10 +10,12 @@ const NavTab = ({ requests, onShow, selectedRequest, onClose }) => {
         onClose={onClose}
       />
     ));
+
+    if (!requests) return null;
   
     return (
-      <div className="border-b-2 mt-12 overflow-x-auto whitespace-nowrap">
-        <div className="flex">
+      <div className="mt-6 overflow-x-auto whitespace-nowrap">
+        <div className="flex border-b-2">
           {navTab}
         </div>
       </div>
