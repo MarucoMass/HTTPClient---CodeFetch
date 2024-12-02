@@ -18,7 +18,7 @@ function Aside({ savedRequests, onSaveAndShow, onDelete }) {
         Solicitudes Guardadas
       </h2>
       {datesOfRequests.length === 0 ? (
-        <p>No hay consultas guardadas</p>
+        <p className="text-center">No hay consultas guardadas</p>
       ) : (
         datesOfRequests.map((date) => (
           <div key={date} className="w-full px-4 mb-2">
@@ -62,8 +62,8 @@ function Aside({ savedRequests, onSaveAndShow, onDelete }) {
                       onClick={() => onSaveAndShow(req)}
                       className="text-blue-500 hover:underline truncate"
                     >
-                      <span className="uppercase font-bold text-black mr-2">{req.config.method}</span>
-                      {req.config.url}
+                      <span className="uppercase font-bold text-black mr-2">{req.method}</span>
+                      {req.url}
                     </button>
                     <button
                       onClick={() => onDelete(req)}

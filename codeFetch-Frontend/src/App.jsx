@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "./App.css";
 import "react-toastify/dist/ReactToastify.css";
 import Aside from "./components/aside/Aside";
@@ -47,16 +47,18 @@ function App() {
 
     const isDuplicate = updatedRequests[today].some(
       (req) =>
-        req.config.url === request.config.url &&
-        req.config.method === request.config.method
+        req.url === request.config.url &&
+        req.method === request.config.method
     );
 
     if (!isDuplicate) {
       const newId = Date.now();
 
       const updatedRequest = {
-        ...request,
         id: newId,
+        url: request.config.url,
+        method: request.config.method,
+        headers: request.headers
       };
 
       updatedRequests[today].push(updatedRequest);
@@ -78,7 +80,6 @@ function App() {
     setRequests((prev) => {
       const exists = prev.some((req) => req.id === request.id);
       if (exists) {
-        // toast.warn("La solicitud ya se encuentra abierta.");
         return prev;
       }
 
