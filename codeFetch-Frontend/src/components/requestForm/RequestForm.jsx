@@ -1,24 +1,21 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Label from "../label/Label";
+import BodyField from "../formComponents/bodyField/BodyField";
+import HeaderOptions from "../formComponents/headerOptions/HeaderOptions";
+import InputField from "../formComponents/inputField/InputField";
 
-// eslint-disable-next-line react/prop-types
-function RequestForm({ setResponse, setLoader}) {
-  const [url, setUrl] = useState("");
+function RequestForm({ setLoader, onSave, setResponse, data}) {
+  const [url, setUrl] = useState(data.url ?? "");
   const [param, setParam] = useState("");
-  const [method, setMethod] = useState("GET");
-  const [headers, setHeaders] = useState("");
+  const [method, setMethod] = useState(data.method ?? "GET");
+  const [headers, setHeaders] = useState(JSON.stringify(data.headers) ? JSON.stringify(data.headers) : "");
   const [authToken, setAuthToken] = useState("");
   const [body, setBody] = useState("");
   const [selectedHeaders, setSelectedHeaders] = useState([]);
-
-  const headerOptions = [
-    { key: "Content-Type", value: "application/json" },
-    { key: "Accept", value: "application/json" },
-    { key: "User-Agent", value: "MyApp/1.0" },
-    { key: "Cache-Control", value: "no-cache" },
-  ];
+  const [activeOption, setActiveOption] = useState("");
 
   const toggleHeader = (headerKey) => {
     setSelectedHeaders((prev) =>
@@ -28,9 +25,73 @@ function RequestForm({ setResponse, setLoader}) {
     );
   };
 
+  const headerOptions = [
+    { key: "Content-Type", value: "application/json" },
+    { key: "Accept", value: "application/json" },
+    { key: "User-Agent", value: "MyApp/1.0" },
+    { key: "Cache-Control", value: "no-cache" },
+  ];
+
+  const selectedOption = () => {
+    switch (activeOption) {
+      case "headers":
+        return (
+          <HeaderOptions
+            headerOptions={headerOptions}
+            selectedHeaders={selectedHeaders}
+            toggleHeader={toggleHeader}
+            headers={headers}
+            setHeaders={setHeaders}
+          />
+        );
+      case "param":
+        return (
+          <InputField
+            value={param}
+            onChange={(e) => setParam(e.target.value)}
+            label="Parámetro (si necesitas algún recurso específico)"
+            placeholder="?=blanco"
+          />
+        );
+      case "authToken":
+        return (
+          <InputField
+            value={authToken}
+            onChange={(e) => setAuthToken(e.target.value)}
+            label="Token de autenticación"
+            placeholder="Bearer Token"
+          />
+        );
+      case "body":
+        return (
+          <BodyField
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+  
+  const options = ["headers", "param", "authToken", "body"];
+
+  const renderOptions = options.map((option, index) => (
+    <div key={index} className="shadow-sm border">
+      <button
+        type="button"
+        onClick={() => setActiveOption(option)}
+        className={`w-full hover:bg-gray-200 transition-colors py-2 ${
+          activeOption == option ? "bg-gray-300" : ""
+        }`}
+      >
+        {option}
+      </button>
+    </div>
+  ));
+
   const handleRequest = async (e) => {
     e.preventDefault();
-
     if (url === "") {
       toast.error(
         `Error: Debe ingresar un endpoint para poder hacer una consulta`
@@ -62,12 +123,13 @@ function RequestForm({ setResponse, setLoader}) {
 
   
       if (res.headers.get("Content-Type") === "application/json") {
+        onSave(res);
         setResponse(res);
+        setActiveOption("");
         toast.success("Petición exitosa");
       }
 
     } catch (err) {
-      setResponse(err.response);
       toast.error(`Error: ${err.message}`);
     } finally {
       setLoader(false);
@@ -76,51 +138,47 @@ function RequestForm({ setResponse, setLoader}) {
 
   return (
     <form onSubmit={handleRequest} className="mb-4 h-fit ">
-      <fieldset className="flex flex-col gap-y-3">
-        <legend>{url}</legend>
-        {/* {requests.length > 1 && (
-          <button
-            onClick={removeRequest}
-            className="self-end bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+      <div className="grid grid-cols-12">
+        <div className="mb-2 col-span-1">
+          <Label>Método</Label>
+          <select
+            value={method}
+            onChange={(e) => setMethod(e.target.value)}
+            className="w-full p-2 border rounded uppercase"
           >
-            X
-          </button>
-        )} */}
-        <div className="grid grid-cols-12">
-          <div className="mb-2">
-            <Label>Método</Label>
-            <select
-              value={method}
-              onChange={(e) => setMethod(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option>GET</option>
-              <option>POST</option>
-              <option>PUT</option>
-              <option>DELETE</option>
-            </select>
-          </div>
-          <div className="mb-2 col-span-10">
-            <Label>URL</Label>
-            <input
-              type="text"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="w-full p-2 border rounded"
-              placeholder="https://api.example.com"
-            />
-          </div>
-          <div className="mb-2 flex items-end">
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Enviar
-            </button>
-          </div>
+            <option>GET</option>
+            <option>POST</option>
+            <option>PUT</option>
+            <option>DELETE</option>
+          </select>
         </div>
+        <div className="mb-2 col-span-10">
+          <Label>URL</Label>
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="w-full p-2 border rounded"
+            placeholder="https://api.example.com"
+          />
+        </div>
+        <div className="mb-2 flex items-end col-span-1">
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 w-full"
+          >
+            Enviar
+          </button>
+        </div>
+      </div>
 
-        <div className="mb-2">
+      <div className="mt-2">
+        <div className="grid grid-cols-4 mb-6">{renderOptions}</div>
+
+        {activeOption != "" && selectedOption()}
+      </div>
+
+      {/* <div className="mb-2">
           <Label>Parámetro (sólo si necesitas un recurso en específico)</Label>
           <input
             type="text"
@@ -179,8 +237,7 @@ function RequestForm({ setResponse, setLoader}) {
               placeholder='{ "key": "value" }'
             ></textarea>
           </div>
-        )}
-      </fieldset>
+        )} */}
     </form>
   );
 }
