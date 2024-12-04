@@ -11,9 +11,9 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
   const [url, setUrl] = useState(data.url ?? "");
   const [param, setParam] = useState("");
   const [method, setMethod] = useState(data.method ?? "GET");
-  const [headers, setHeaders] = useState(JSON.stringify(data.headers) ? JSON.stringify(data.headers) : "");
+  const [headers, setHeaders] = useState(data.headers ?? "");
   const [authToken, setAuthToken] = useState("");
-  const [body, setBody] = useState("");
+  const [body, setBody] = useState(data.body ?? "");
   const [selectedHeaders, setSelectedHeaders] = useState([]);
   const [activeOption, setActiveOption] = useState("");
 
@@ -48,7 +48,7 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
         return (
           <InputField
             value={param}
-            onChange={(e) => setParam(e.target.value)}
+            onChange={setParam}
             label="Parámetro (si necesitas algún recurso específico)"
             placeholder="?=blanco"
           />
@@ -57,7 +57,7 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
         return (
           <InputField
             value={authToken}
-            onChange={(e) => setAuthToken(e.target.value)}
+            onChange={setAuthToken}
             label="Token de autenticación"
             placeholder="Bearer Token"
           />
@@ -66,7 +66,7 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
         return (
           <BodyField
             value={body}
-            onChange={(e) => setBody(e.target.value)}
+            onChange={setBody}
           />
         );
       default:
@@ -90,6 +90,7 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
     </div>
   ));
 
+
   const handleRequest = async (e) => {
     e.preventDefault();
     if (url === "") {
@@ -101,7 +102,7 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
 
     try {
       setLoader(true);
-      const parsedHeaders = JSON.parse(headers || "{}");
+      const parsedHeaders = headers || "{}";
       selectedHeaders.forEach((headerKey) => {
         const headerOption = headerOptions.find((h) => h.key === headerKey);
         if (headerOption) {
@@ -113,16 +114,17 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
       }
 
       const config = {
-        method,
+        method: method.toUpperCase(),
         url: param ? `${url}/${param}` : url,
         headers: parsedHeaders,
-        data: body ? JSON.parse(body) : undefined,
+        data: body ? body : undefined,
       };
 
       const res = await axios(config);
 
-  
-      if (res.headers.get("Content-Type") === "application/json") {
+
+      // res.headers.get("Content-Type") === "application/json";
+      if (res.status === 200) {
         onSave(res);
         setResponse(res);
         setActiveOption("");

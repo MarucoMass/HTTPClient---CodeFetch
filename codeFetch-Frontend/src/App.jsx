@@ -22,7 +22,8 @@ function App() {
       id: Date.now(),
       url: "",
       method:"",
-      headers:"{}"
+      headers:"{}",
+      body: ""
     };
     setRequests((prev) => [...prev, newRequest]);
     setSelectedRequest(newRequest);
@@ -58,8 +59,11 @@ function App() {
         id: newId,
         url: request.config.url,
         method: request.config.method,
-        headers: request.headers
+        headers: request.headers,
+        body: request.config.data
       };
+
+      console.log(updatedRequest);
 
       updatedRequests[today].push(updatedRequest);
       setSavedRequests(updatedRequests);
@@ -126,6 +130,8 @@ function App() {
       setSavedRequests(updatedRequests);
       localStorage.setItem("savedRequests", JSON.stringify(updatedRequests));
     }
+
+    setResponse({});
   };
 
 
