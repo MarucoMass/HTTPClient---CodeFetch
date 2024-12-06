@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -7,30 +6,48 @@ import BodyField from "../formComponents/bodyField/BodyField";
 import HeaderOptions from "../formComponents/headerOptions/HeaderOptions";
 import InputField from "../formComponents/inputField/InputField";
 
-function RequestForm({ setLoader, onSave, setResponse, data}) {
+const RequestForm = ({ setLoader, onSave, setResponse, data }) => {
   const [url, setUrl] = useState(data.url ?? "");
   const [param, setParam] = useState("");
   const [method, setMethod] = useState(data.method ?? "GET");
-  const [headers, setHeaders] = useState(JSON.stringify(data.headers) ? JSON.stringify(data.headers) : "");
   const [authToken, setAuthToken] = useState("");
-  const [body, setBody] = useState("");
-  const [selectedHeaders, setSelectedHeaders] = useState([]);
+  const [body, setBody] = useState(data.body ?? "");
+  const [selectedHeaders, setSelectedHeaders] = useState(data.headers ?? []);
   const [activeOption, setActiveOption] = useState("");
 
-  const toggleHeader = (headerKey) => {
-    setSelectedHeaders((prev) =>
-      prev.includes(headerKey)
-        ? prev.filter((key) => key !== headerKey)
-        : [...prev, headerKey]
-    );
-  };
+  // const toggleHeader = (headerKey) => {
+  //   setSelectedHeaders((prev) =>
+  //     prev.includes(headerKey.toLowerCase()) // Compara en minúsculas
+  //       ? prev.filter((key) => key !== headerKey.toLowerCase())
+  //       : [...prev, headerKey.toLowerCase()]
+  //   );
+  // };
 
-  const headerOptions = [
-    { key: "Content-Type", value: "application/json" },
-    { key: "Accept", value: "application/json" },
-    { key: "User-Agent", value: "MyApp/1.0" },
-    { key: "Cache-Control", value: "no-cache" },
-  ];
+  const toggleHeader = (headerKey) => {
+    setSelectedHeaders((prev) => {
+      // Si la cabecera ya existe, elimínala
+      if (prev[headerKey]) {
+        const { [headerKey]: _, ...rest } = prev; // Usamos desestructuración para eliminar la clave
+        return rest;
+      }
+      // Si no existe, agrégala con un valor predeterminado
+      return { ...prev, [headerKey]: headerOptions[headerKey] };
+    });
+  };
+  
+  const headerOptions = {
+    "content-type": "application/json",
+    accept: "application/json",
+    "user-agent": "MyApp/1.0",
+    "cache-control": "no-cache",
+  };
+  // const headerOptions = [
+  //   { key: "Content-Type", value: "application/json" },
+  //   { key: "Accept", value: "application/json" },
+  //   { key: "User-Agent", value: "MyApp/1.0" },
+  //   { key: "Cache-Control", value: "no-cache" },
+  // ];
+
 
   const selectedOption = () => {
     switch (activeOption) {
@@ -40,15 +57,13 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
             headerOptions={headerOptions}
             selectedHeaders={selectedHeaders}
             toggleHeader={toggleHeader}
-            headers={headers}
-            setHeaders={setHeaders}
           />
         );
       case "param":
         return (
           <InputField
             value={param}
-            onChange={(e) => setParam(e.target.value)}
+            onChange={setParam}
             label="Parámetro (si necesitas algún recurso específico)"
             placeholder="?=blanco"
           />
@@ -57,23 +72,18 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
         return (
           <InputField
             value={authToken}
-            onChange={(e) => setAuthToken(e.target.value)}
+            onChange={setAuthToken}
             label="Token de autenticación"
             placeholder="Bearer Token"
           />
         );
       case "body":
-        return (
-          <BodyField
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-          />
-        );
+        return <BodyField value={body} onChange={setBody} />;
       default:
         return null;
     }
   };
-  
+
   const options = ["headers", "param", "authToken", "body"];
 
   const renderOptions = options.map((option, index) => (
@@ -82,7 +92,7 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
         type="button"
         onClick={() => setActiveOption(option)}
         className={`w-full hover:bg-gray-200 transition-colors py-2 ${
-          activeOption == option ? "bg-gray-300" : ""
+          activeOption === option ? "bg-gray-300" : ""
         }`}
       >
         {option}
@@ -94,41 +104,44 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
     e.preventDefault();
     if (url === "") {
       toast.error(
-        `Error: Debe ingresar un endpoint para poder hacer una consulta`
+        "Error: Debe ingresar un endpoint para poder hacer una consulta"
       );
       return;
     }
 
     try {
       setLoader(true);
-      const parsedHeaders = JSON.parse(headers || "{}");
-      selectedHeaders.forEach((headerKey) => {
-        const headerOption = headerOptions.find((h) => h.key === headerKey);
-        if (headerOption) {
-          parsedHeaders[headerKey] = headerOption.value;
-        }
-      });
+      // const parsedHeaders = {};
+
+      // // Solo incluimos las cabeceras seleccionadas
+      // selectedHeaders.forEach((headerKey) => {
+      //   // Busca el valor correspondiente a la clave en el objeto headerOptions
+      //   if (headerOptions[headerKey]) {
+      //     parsedHeaders[headerKey] = headerOptions[headerKey];
+      //   }
+      // });
+
+      const parsedHeaders = { ...selectedHeaders };
+
       if (authToken) {
         parsedHeaders["Authorization"] = `Bearer ${authToken}`;
       }
 
       const config = {
-        method,
+        method: method,
         url: param ? `${url}/${param}` : url,
         headers: parsedHeaders,
-        data: body ? JSON.parse(body) : undefined,
+        data: body ? body : undefined,
       };
 
       const res = await axios(config);
 
-  
-      if (res.headers.get("Content-Type") === "application/json") {
+      if (res.status === 200) {
         onSave(res);
         setResponse(res);
         setActiveOption("");
         toast.success("Petición exitosa");
       }
-
     } catch (err) {
       toast.error(`Error: ${err.message}`);
     } finally {
@@ -137,7 +150,7 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
   };
 
   return (
-    <form onSubmit={handleRequest} className="mb-4 h-fit ">
+    <form onSubmit={handleRequest} className="mb-4 h-fit">
       <div className="grid grid-cols-12">
         <div className="mb-2 col-span-1">
           <Label>Método</Label>
@@ -175,71 +188,10 @@ function RequestForm({ setLoader, onSave, setResponse, data}) {
       <div className="mt-2">
         <div className="grid grid-cols-4 mb-6">{renderOptions}</div>
 
-        {activeOption != "" && selectedOption()}
+        {activeOption !== "" && selectedOption()}
       </div>
-
-      {/* <div className="mb-2">
-          <Label>Parámetro (sólo si necesitas un recurso en específico)</Label>
-          <input
-            type="text"
-            value={param}
-            onChange={(e) => setParam(e.target.value)}
-            className="w-full p-2 border rounded"
-            placeholder="1, zapato, etc"
-          />
-        </div>
-
-        <div className="mb-2">
-          <Label>Token de Autenticación (opcional)</Label>
-          <input
-            type="text"
-            value={authToken}
-            onChange={(e) => setAuthToken(e.target.value)}
-            className="w-full p-2 border rounded"
-            placeholder="Bearer Token"
-          />
-        </div>
-
-        <div className="mb-2">
-          <Label>Cabeceras estándar</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {headerOptions.map((header) => (
-              <label key={header.key} className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={selectedHeaders.includes(header.key)}
-                  onChange={() => toggleHeader(header.key)}
-                  className="mr-2"
-                />
-                {header.key} ({header.value})
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-2">
-          <Label>Cabeceras personalizadas (JSON)</Label>
-          <textarea
-            value={headers}
-            onChange={(e) => setHeaders(e.target.value)}
-            className="w-full p-2 border rounded  min-h-20"
-            placeholder='{ "" }'
-          ></textarea>
-        </div>
-
-        {["POST", "PUT"].includes(method) && (
-          <div className="mb-2">
-            <Label>Cuerpo (JSON)</Label>
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              className="w-full p-2 border rounded min-h-20"
-              placeholder='{ "key": "value" }'
-            ></textarea>
-          </div>
-        )} */}
     </form>
   );
-}
+};
 
 export default RequestForm;

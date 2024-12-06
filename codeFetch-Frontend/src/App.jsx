@@ -21,18 +21,20 @@ function App() {
     const newRequest = {
       id: Date.now(),
       url: "",
-      method:"",
-      headers:"{}"
+      method: "",
+      headers: undefined,
+      body: "",
     };
     setRequests((prev) => [...prev, newRequest]);
     setSelectedRequest(newRequest);
+    setResponse({});
   };
 
   const showRequest = (req) => {
     const foundRequest = requests.find((r) => r.id === req.id);
     if (foundRequest) {
-      setSelectedRequest(foundRequest); 
-      setResponse({})
+      setSelectedRequest(foundRequest);
+      setResponse({});
     }
   };
 
@@ -47,33 +49,41 @@ function App() {
 
     const isDuplicate = updatedRequests[today].some(
       (req) =>
-        req.url === request.config.url &&
-        req.method === request.config.method
+        req.url == request.config.url &&
+        req.method == request.config.method 
+        // JSON.stringify(req.headers) == JSON.stringify(request.config.headers) &&
+        // req.body == request.config.data
     );
-
+    
     if (!isDuplicate) {
       const newId = Date.now();
-
+      
+      const headers = {...request.headers}
+      
       const updatedRequest = {
         id: newId,
         url: request.config.url,
         method: request.config.method,
-        headers: request.headers
+        headers: headers,
+        body: request.config.data ?? undefined,
       };
-
+      
+  
+      
       updatedRequests[today].push(updatedRequest);
       setSavedRequests(updatedRequests);
-
+      
       localStorage.setItem("savedRequests", JSON.stringify(updatedRequests));
-
+      
       setRequests((prevRequests) =>
         prevRequests.map((req) =>
           req.id === selectedRequest.id ? updatedRequest : req
-        )
-      );
+    )
+  );
+  
+  setSelectedRequest(updatedRequest);
+}
 
-      setSelectedRequest(updatedRequest);
-    }
   };
 
   const saveAndShowSavedReq = (request) => {
@@ -87,7 +97,7 @@ function App() {
     });
 
     setSelectedRequest(request);
-    setResponse({})
+    setResponse({});
   };
 
   const removeFromRequests = (request) => {
@@ -126,8 +136,9 @@ function App() {
       setSavedRequests(updatedRequests);
       localStorage.setItem("savedRequests", JSON.stringify(updatedRequests));
     }
-  };
 
+    setResponse({});
+  };
 
   return (
     <>
